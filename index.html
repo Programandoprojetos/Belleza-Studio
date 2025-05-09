@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bellezza Studio - Agendamento de Serviços</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #FFD700;
+            --primary-dark: #e6c300;
+            --secondary-color: #000;
+            --tertiary-color: #FF5733;
+            --remark-color: #33A1FF;
+            --delete-color: #cc0000;
+            --success-color: #28a745;
+            --cancel-color: #dc3545;
+            --reschedule-color: #fd7e14;
+            --background-color: #f4f4f4;
+            --card-color: #fff;
+            --text-color: #333;
+            --border-color: #ddd;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            padding-bottom: 60px;
+            color: var(--text-color);
+            position: relative;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        header h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.5em;
+            margin: 0;
+        }
+
+        header img {
+            width: 120px;
+            height: auto;
+            margin: 10px auto;
+            object-fit: contain;
+            display: block;
+        }
+
+        .user-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .user-controls button {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .user-controls button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card {
+            background-color: var(--card-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .notifications {
+            background-color: var(--card-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            display: none;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .notifications h3 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+
+        .notification-list {
+            list-style-type: none;
+        }
+
+        .notification-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .calendar,
+        .services,
+        .time-slot,
+        .booking-form,
+        .schedule {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        h2 {
+            color: var(--text-color);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .calendar input,
+        .services select,
+        .time-slot select,
+        .booking-form input,
+        .booking-form button,
+        .login-form input,
+        .login-form button {
+            margin: 10px;
+            padding: 12px;
+            font-size: 1em;
+            width: 80%;
+            max-width: 350px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            transition: border 0.3s, box-shadow 0.3s;
+        }
+
+        .calendar input:focus,
+        .services select:focus,
+        .time-slot select:focus,
+        .booking-form input:focus,
+        .login-form input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.25);
+        }
+
+        .booking-form button,
+        .login-form button {
+            background-color: var(--primary-color);
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--secondary-color);
+            transition: background-color 0.3s;
+        }
+
+        .booking-form button:hover,
+        .login-form button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .login-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-content {
+            background-color: var(--card-color);
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+        }
+
+        .login-content h2 {
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .admin-controls {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            border-radius: 4px;
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .admin-controls p {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        footer {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            text-align: center;
+            padding: 15px;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .appointment-table-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            background-color: var(--card-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        table th,
+        table td {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        table th {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+        }
+
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .action-buttons button {
+            background-color: var(--tertiary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .action-buttons button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .action-buttons button.remark {
+            background-color: var(--remark-color);
+        }
+
+        .action-buttons button.delete {
+            background-color: var(--delete-color);
+        }
+
+        .status-confirmed {
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .status-cancelled {
+            color: var(--cancel-color);
+            font-weight: bold;
+        }
+
+        .status-rescheduled {
+            color: var(--reschedule-color);
+            font-weight: bold;
+        }
+
+        .flash-message {
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .flash-message.success {
+            background-color: rgba(40, 167, 69, 0.2);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+        }
+
+        .flash-message.error {
+            background-color: rgba(220, 53, 69, 0.2);
+            border: 1px solid var(--cancel-color);
+            color: var(--cancel-color);
+        }
+
+        .disabled {
+            opacity: 0.6;
+            cursor: not-allowed !important;
+        }
+
+        .disabled:hover {
+            background-color: var(--primary-color) !important;
+            transform: none !important;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2em;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .user-controls {
+                position: static;
+                justify-content: center;
+                margin-top: 10px;
+            }
+
+            .calendar input,
+            .services select,
+            .time-slot select,
+            .booking-form input,
+            .booking-form button {
+                width: 100%;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .action-buttons button {
+                margin-bottom: 5px;
+                width: 100%;
+            }
+
+            .login-content {
+                width: 95%;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            header img {
+                width: 80px;
+            }
+
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+
+            table th,
+            table td {
+                padding: 8px 5px;
+                font-size: 0.8em;
+            }
+
+            .action-buttons button {
+                padding: 5px 10px;
+                font-size: 0.8em;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            h2 {
+                font-size: 1.3em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <!-- Logo local armazenado na pasta de imagens -->
+        <img src="static/images/logo.png" alt="Bellezza Studio Logo" id="logo-img">
+        <h1>Bellezza Studio</h1>
+        <p>Agende, Cancele ou Remarque os Horários</p>
+
+        <div class="user-controls">
+            <button id="login-button">Login</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Área de notificações para agendamentos próximos -->
+        <div class="notifications" id="notifications">
+            <h3>Agendamentos Próximos</h3>
+            <ul class="notification-list" id="notification-list">
+                <!-- Notificações serão adicionadas pelo JavaScript -->
+            </ul>
+        </div>
+
+        <!-- Controles de Administrador (visível apenas após login) -->
+        <div class="admin-controls card" id="admin-panel">
+            <p>Modo Administrador Ativo</p>
+            <span id="admin-info">Todos os controles estão desbloqueados.</span>
+        </div>
+
+        <!-- Calendário e Agendamento -->
+        <div class="card">
+            <div class="calendar">
+                <h2>Escolha a Data do Agendamento</h2>
+                <input type="date" id="date" required>
+            </div>
+
+            <!-- Seleção de Serviço -->
+            <div class="services">
+                <h2>Escolha o Serviço</h2>
+                <select id="service">
+                    <!-- Lista de serviços oferecidos pelo salão -->
+                    <!-- Para adicionar mais serviços, adicione novas opções abaixo -->
+                    <option value="manicure-pedicure">Manicure / Pedicure</option>
+                    <option value="manicure">Manicure</option>
+                    <option value="pedicure">Pedicure</option>
+                    <option value="esmaltacao-gel">Esmaltação em Gel</option>
+                    <option value="alongamento-unhas">Alongamento de Unhas</option>
+                    <option value="blindagem">Blindagem</option>
+                    <option value="manutencao-alongamento">Manutenção de Alongamento</option>
+                    <option value="spa-pes">Spa de Pés</option>
+                    <option value="cabeleireiro">Cabeleireiro</option>
+                    <!-- Você pode adicionar mais serviços aqui conforme necessário -->
+                    <!-- Exemplo: <option value="depilacao">Depilação</option> -->
+                </select>
+            </div>
+
+            <!-- Escolha de Horário -->
+            <div class="time-slot">
+                <h2>Escolha o Horário</h2>
+                <select id="time">
+                    <!-- Os horários serão preenchidos dinamicamente pelo JavaScript -->
+                </select>
+            </div>
+
+            <!-- Formulário de Agendamento -->
+            <form class="booking-form" id="booking-form">
+                <h2>Informações do Cliente</h2>
+                <input type="hidden" name="date" id="form-date">
+                <input type="hidden" name="service" id="form-service">
+                <input type="hidden" name="time" id="form-time">
+                
+                <input type="text" name="name" id="name" placeholder="Nome Completo" required>
+                <input type="tel" name="phone" id="phone" placeholder="Telefone (apenas números)" pattern="[0-9]{11}" title="Digite um número de telefone válido (11 dígitos)" required>
+                
+                <button type="submit" class="admin-only disabled" disabled>Agendar Horário</button>
+            </form>
+        </div>
+
+        <!-- Tabela de Agendamentos (visível apenas para administradores) -->
+        <div class="appointment-table-container">
+            <h2>Agendamentos</h2>
+            <table id="appointments-table" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Horário</th>
+                        <th>Serviço</th>
+                        <th>Cliente</th>
+                        <th>Telefone</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="appointments-body">
+                    <!-- Os agendamentos serão preenchidos dinamicamente pelo JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 Bellezza Studio. Todos os direitos reservados.</p>
+    </footer>
+
+    <!-- Modal de Login -->
+    <div class="login-modal" id="login-modal">
+        <div class="login-content">
+            <button class="close-btn" id="close-modal">&times;</button>
+            <h2>Login de Administrador</h2>
+            <form class="login-form" id="login-form">
+                <input type="text" name="username" placeholder="Nome de Usuário" required>
+                <input type="password" name="password" placeholder="Senha" required>
+                <button type="submit">Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const adminPanel = document.getElementById('admin-panel');
+            const loginButton = document.getElementById('login-button');
+            const loginModal = document.getElementById('login-modal');
+            const closeModalBtn = document.getElementById('close-modal');
+            const loginForm = document.getElementById('login-form');
+            const bookingForm = document.getElementById('booking-form');
+            const dateInput = document.getElementById('date');
+            const serviceSelect = document.getElementById('service');
+            const timeSelect = document.getElementById('time');
+            const appointmentsTable = document.getElementById('appointments-table');
+            const appointmentsBody = document.getElementById('appointments-body');
+            const notifications = document.getElementById('notifications');
+            const notificationList = document.getElementById('notification-list');
+            const formDate = document.getElementById('form-date');
+            const formService = document.getElementById('form-service');
+            const formTime = document.getElementById('form-time');
+
+            // Set minimum date to today
+            if (dateInput) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                const formattedDate = `${yyyy}-${mm}-${dd}`;
+                dateInput.setAttribute('min', formattedDate);
+                dateInput.value = formattedDate;
+                if (formDate) formDate.value = formattedDate;
+            }
+
+            // Admin status check
+            let isAdminLoggedIn = false;
+            
+            // Check if logged in from localStorage
+            if (localStorage.getItem('admin_logged_in') === 'true') {
+                isAdminLoggedIn = true;
+                updateUIForAdminStatus();
+                if (loginButton) {
+                    loginButton.textContent = 'Logout';
+                    loginButton.onclick = function() {
+                        logout();
+                    };
+                }
+            }
+
+            // Show/hide elements based on admin status
+            function updateUIForAdminStatus() {
+                const adminElements = document.querySelectorAll('.admin-only');
+                
+                adminElements.forEach(element => {
+                    if (isAdminLoggedIn) {
+                        element.classList.remove('disabled');
+                        element.removeAttribute('disabled');
+                    } else {
+                        element.classList.add('disabled');
+                        element.setAttribute('disabled', 'disabled');
+                    }
+                });
+
+                if (appointmentsTable) {
+                    appointmentsTable.style.display = isAdminLoggedIn ? 'table' : 'none';
+                }
+                
+                if (adminPanel) {
+                    adminPanel.style.display = isAdminLoggedIn ? 'block' : 'none';
+                }
+                
+                if (bookingForm) {
+                    const bookButton = bookingForm.querySelector('button[type="submit"]');
+                    if (bookButton) {
+                        if (isAdminLoggedIn) {
+                            bookButton.classList.remove('disabled');
+                            bookButton.removeAttribute('disabled');
+                        } else {
+                            bookButton.classList.add('disabled');
+                            bookButton.setAttribute('disabled', 'disabled');
+                        }
+                    }
+                }
+                
+                // If admin is logged in, load appointments
+                if (isAdminLoggedIn) {
+                    loadAppointments();
+                }
+            }
+
+            // Open login modal
+            if (loginButton) {
+                loginButton.addEventListener('click', function() {
+                    if (!isAdminLoggedIn) {
+                        loginModal.style.display = 'flex';
+                    } else {
+                        logout();
+                    }
+                });
+            }
+
+            // Close login modal
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', function() {
+                    loginModal.style.display = 'none';
+                });
+            }
+
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target === loginModal) {
+                    loginModal.style.display = 'none';
+                }
+            });
+
+            // Logout function
+            function logout() {
+                localStorage.removeItem('admin_logged_in');
+                isAdminLoggedIn = false;
+                updateUIForAdminStatus();
+                loginButton.textContent = 'Login';
+                loginButton.onclick = function() {
+                    loginModal.style.display = 'flex';
+                };
+                alert('Logout realizado com sucesso!');
+            }
+
+            // Generate time slots
+            if (timeSelect) {
+                // Business hours: 6:00 to 23:00
+                const startHour = 6;
+                const endHour = 23;
+                const interval = 15; // 15 minutes interval
+                
+                for (let hour = startHour; hour < endHour; hour++) {
+                    for (let minutes = 0; minutes < 60; minutes += interval) {
+                        const hourStr = hour.toString().padStart(2, '0');
+                        const minutesStr = minutes.toString().padStart(2, '0');
+                        const timeStr = `${hourStr}:${minutesStr}`;
+                        
+                        const option = document.createElement('option');
+                        option.value = timeStr;
+                        option.textContent = timeStr;
+                        timeSelect.appendChild(option);
+                    }
+                }
+
+                // Set initial value for hidden input
+                if (formTime) formTime.value = timeSelect.value;
+            }
+
+            // Set initial value for hidden service input
+            if (serviceSelect && formService) formService.value = serviceSelect.value;
+
+            // Update hidden inputs when form changes
+            if (dateInput && formDate) {
+                dateInput.addEventListener('change', function() {
+                    formDate.value = this.value;
+                });
+            }
+            
+            if (serviceSelect && formService) {
+                serviceSelect.addEventListener('change', function() {
+                    formService.value = this.value;
+                });
+            }
+            
+            if (timeSelect && formTime) {
+                timeSelect.addEventListener('change', function() {
+                    formTime.value = this.value;
+                });
+            }
+
+            // Helper functions for displaying status
+            function getStatusClass(status) {
+                switch(status.toLowerCase()) {
+                    case 'confirmado': return 'status-confirmed';
+                    case 'cancelado': return 'status-cancelled';
+                    case 'remarcado': return 'status-rescheduled';
+                    default: return '';
+                }
+            }
+
+            function formatPhoneNumber(phone) {
+                // Format: (XX) XXXXX-XXXX
+                return phone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+            }
+
+            // Login Form Submission
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const username = this.querySelector('input[name="username"]').value;
+                    const password = this.querySelector('input[name="password"]').value;
+                    
+                    // Hardcoded credentials (in a real app, this would be a server request)
+                    if (username === 'admin' && password === 'admin123') {
+                        isAdminLoggedIn = true;
+                        localStorage.setItem('admin_logged_in', 'true');
+                        loginModal.style.display = 'none';
+                        updateUIForAdminStatus();
+                        loginButton.textContent = 'Logout';
+                        alert('Login realizado com sucesso!');
+                    } else {
+                        alert('Nome de usuário ou senha incorretos.');
+                    }
+                });
+            }
+
+            // Book Appointment
+            if (bookingForm) {
+                bookingForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    if (!isAdminLoggedIn) {
+                        alert('Apenas administradores podem agendar horários. Por favor, faça login.');
+                        return;
+                    }
+                    
+                    const date = formDate.value;
+                    const service = formService.value;
+                    const time = formTime.value;
+                    const name = document.getElementById('name').value;
+                    const phone = document.getElementById('phone').value;
+                    
+                    if (!date || !service || !time || !name || !phone) {
+                        alert('Todos os campos são obrigatórios.');
+                        return;
+                    }
+                    
+                    // Validate phone number
+                    if (!/^\d{11}$/.test(phone)) {
+                        alert('O telefone deve conter 11 dígitos numéricos.');
+                        return;
+                    }
+                    
+                    // In a real app, this would be a server request
+                    // Simulate adding to database
+                    const appointment = {
+                        id: Date.now(), // Simple way to generate unique IDs
+                        date: date,
+                        service: service,
+                        time: time,
+                        client_name: name,
+                        client_phone: phone,
+                        status: 'confirmado'
+                    };
+                    
+                    // Get existing appointments or initialize empty array
+                    let appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+                    appointments.push(appointment);
+                    localStorage.setItem('appointments', JSON.stringify(appointments));
+                    
+                    alert('Agendamento realizado com sucesso!');
+                    bookingForm.reset();
+                    
+                    // Set date back to today
+                    const today = new Date();
+                    const yyyy = today.getFullYear();
+                    const mm = String(today.getMonth() + 1).padStart(2, '0');
+                    const dd = String(today.getDate()).padStart(2, '0');
+                    dateInput.value = `${yyyy}-${mm}-${dd}`;
+                    formDate.value = dateInput.value;
+                    
+                    // Reset other hidden inputs
+                    formService.value = serviceSelect.value;
+                    formTime.value = timeSelect.value;
+                    
+                    // Refresh appointments
+                    loadAppointments();
+                });
+            }
+
+            // Load and display appointments
+            function loadAppointments() {
+                if (!appointmentsBody || !isAdminLoggedIn) return;
+                
+                const appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+                appointmentsBody.innerHTML = '';
+                
+                if (appointments.length === 0) {
+                    const emptyRow = document.createElement('tr');
+                    emptyRow.innerHTML = '<td colspan="7" style="text-align: center;">Nenhum agendamento encontrado</td>';
+                    appointmentsBody.appendChild(emptyRow);
+                    return;
+                }
+                
+                appointments.forEach(appointment => {
+                    const row = document.createElement('tr');
+                    
+                    // Format date: YYYY-MM-DD to DD/MM/YYYY
+                    const dateParts = appointment.date.split('-');
+                    const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+                    
+                    row.innerHTML = `
+                        <td>${formattedDate}</td>
+                        <td>${appointment.time}</td>
+                        <td>${appointment.service}</td>
+                        <td>${appointment.client_name}</td>
+                        <td>${formatPhoneNumber(appointment.client_phone)}</td>
+                        <td class="${getStatusClass(appointment.status)}">${appointment.status}</td>
+                        <td class="action-buttons">
+                            <button class="remark" data-id="${appointment.id}">Remarcar</button>
+                            <button class="delete" data-id="${appointment.id}">Excluir</button>
+                        </td>
+                    `;
+                    
+                    appointmentsBody.appendChild(row);
+                });
+                
+                // Add event listeners to action buttons
+                const remarkButtons = document.querySelectorAll('.action-buttons button.remark');
+                const deleteButtons = document.querySelectorAll('.action-buttons button.delete');
+                
+                remarkButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const id = Number(this.getAttribute('data-id'));
+                        const newStatus = prompt('Digite o novo status (confirmado, cancelado, remarcado):');
+                        
+                        if (newStatus) {
+                            updateAppointmentStatus(id, newStatus);
+                        }
+                    });
+                });
+                
+                deleteButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const id = Number(this.getAttribute('data-id'));
+                        
+                        if (confirm('Tem certeza que deseja excluir este agendamento?')) {
+                            deleteAppointment(id);
+                        }
+                    });
+                });
+                
+                // Show upcoming appointments in notifications
+                showUpcomingAppointments(appointments);
+            }
+
+            // Update appointment status
+            function updateAppointmentStatus(id, status) {
+                let appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+                const index = appointments.findIndex(a => a.id === id);
+                
+                if (index !== -1) {
+                    appointments[index].status = status;
+                    localStorage.setItem('appointments', JSON.stringify(appointments));
+                    alert('Status do agendamento atualizado com sucesso!');
+                    loadAppointments();
+                } else {
+                    alert('Agendamento não encontrado.');
+                }
+            }
+
+            // Delete appointment
+            function deleteAppointment(id) {
+                let appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+                appointments = appointments.filter(a => a.id !== id);
+                localStorage.setItem('appointments', JSON.stringify(appointments));
+                alert('Agendamento excluído com sucesso!');
+                loadAppointments();
+            }
+
+            // Show upcoming appointments in notifications
+            function showUpcomingAppointments(appointments) {
+                if (!notifications || !notificationList || !isAdminLoggedIn) return;
+                
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                
+                const upcomingAppointments = appointments.filter(appointment => {
+                    const appointmentDate = new Date(appointment.date);
+                    appointmentDate.setHours(0, 0, 0, 0);
+                    
+                    // Show appointments for today and tomorrow
+                    return (
+                        appointmentDate.getTime() === today.getTime() || 
+                        appointmentDate.getTime() === tomorrow.getTime()
+                    ) && appointment.status.toLowerCase() === 'confirmado';
+                });
+                
+                if (upcomingAppointments.length > 0) {
+                    notifications.style.display = 'block';
+                    notificationList.innerHTML = '';
+                    
+                    upcomingAppointments.forEach(appointment => {
+                        const li = document.createElement('li');
+                        
+                        // Format date: YYYY-MM-DD to DD/MM/YYYY
+                        const dateParts = appointment.date.split('-');
+                        const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+                        
+                        const appointmentDate = new Date(appointment.date);
+                        const isToday = appointmentDate.getDate() === today.getDate() &&
+                                        appointmentDate.getMonth() === today.getMonth() &&
+                                        appointmentDate.getFullYear() === today.getFullYear();
+                        const dayText = isToday ? 'Hoje' : 'Amanhã';
+                        
+                        li.textContent = `${dayText} às ${appointment.time} - ${appointment.service} para ${appointment.client_name}`;
+                        notificationList.appendChild(li);
+                    });
+                } else {
+                    notifications.style.display = 'none';
+                }
+            }
+
+            // Initial setup
+            updateUIForAdminStatus();
+        });
+    </script>
+</body>
+</html>
