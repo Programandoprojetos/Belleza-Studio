@@ -18,8 +18,8 @@ Este projeto é um sistema simples de agendamento de serviços para um estúdio 
 ## Estrutura de Diretórios
 
 /static
-    /images
-        logo.png
+       /images
+              logo.png
 /index.html
 
 ### Arquivos Principais
